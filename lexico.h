@@ -618,28 +618,3 @@ Token proximo_token() {
 	token.atributo = -1;
 	return token;
 }
-
-
-int main(int argc, char *argv[]) {
-	Token token; 
-
-	if (argc != 2) {
-		printf("Como chamar o Analisador Léxico: %s <nome do arquivo>\n", argv[0]);
-		return 1;
-	}
-	
-	
-	char *filename = argv[1];
-	code = readFile(filename); 
-	
-	if (code == NULL){
-		printf("Arquivo não encontrado\n");
-	} else {
-		while (code[cont_sim_lido] != '\0')
-			token = proximo_token();	
-	}
-
-	free(code);
-
-	return 0;
-}
