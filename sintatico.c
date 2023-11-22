@@ -4,30 +4,37 @@
 Token token;
 char *code;
 
-void Teste4() {
-	printf("Nome do atributo: %d\nAtributo: %d\n",token.nome_atributo, token.atributo);
+
+void Stmt() {
+	if (token.nome_atributo == -1){ // Será que terei que fazer isso sempre que chamar "proximo_token"?
+		printf("End of File\n");
+		exit(0); // Sinceramente não sei se isso está certo, kalai do futuro irá resolver
+	}
+
+
+	// Stmt -> Vars = Exps | 
 }
 
 
-void Teste3() {
-	printf("Nome do atributo: %d\nAtributo: %d\n",token.nome_atributo, token.atributo);
+void Block() {
+	if (token.nome_atributo == -1){ // Será que terei que fazer isso sempre que chamar "proximo_token"?
+		printf("End of File\n");
+		exit(0); // Sinceramente não sei se isso está certo, kalai do futuro irá resolver
+	}
 	
-	token = proximo_token();
-	Teste4();
-}
 
-void Teste2() {
-	printf("Nome do atributo: %d\nAtributo: %d\n",token.nome_atributo, token.atributo);
+        // Block -> (Stmt;)*
+	Stmt();
+	if (token.nome_atributo == ';'){
+		token = proximo_token();
+		Stmt();
+	}
 
-	token = proximo_token();
-	Teste3();
-}
-void Teste() {
+	/* TODO: No futuro teremos que adicionar esse reconhecimento para erro
+	else
+		erro();
+	*/
 	
-	printf("Nome do atributo: %d\nAtributo: %d\n",token.nome_atributo, token.atributo);
-	
-	token = proximo_token();
-	Teste2();
 }
 
 int main(int argc, char *argv[]) {
@@ -43,7 +50,7 @@ int main(int argc, char *argv[]) {
 		printf("Arquivo não encontrado\n");
 	} else {
 		token = proximo_token();
-		Teste();
+		Block();
 	}
 			
 	free(code);
