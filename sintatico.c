@@ -12,12 +12,13 @@ void fim_do_codigo() {
 }
 
 void Var() {
-	fim_do_codigo(); // Acabei de me tocar que não preciso ficar chamando isso aqui o tempo todo, só depois de chamar proximo_token
 
 	if (token.nome_atributo == 260) {
 		token = proximo_token();
+		fim_do_codigo();
 	} else if (token.nome_atributo == '(') { // TODO: Pensar se isso aqui está certo, to imaginando que quando chegamos aqui estamos vindo de 'Prefixexp'
 		token = proximo_token();
+		fim_do_codigo();
 	}
 	/* Futura função para erro 
 	else {
@@ -34,12 +35,12 @@ void Exp() {
 	// Essa aqui é muito grande, vou fazer só uma agora para testar
 	if (token.nome_atributo == 261) {
 		token = proximo_token();
+		fim_do_codigo();
 		ExpBlock();
 	}
 }
 
 void Exps() {
-	fim_do_codigo();
 	
 
 	// Exps -> Exp (,Exp)*
@@ -53,7 +54,6 @@ void Exps() {
 }
 
 void Vars() {
-	fim_do_codigo();
 	
 
 	// Vars -> Var (,Var)*
@@ -67,8 +67,6 @@ void Vars() {
 
 
 void Stmt() {
-	fim_do_codigo();	
-
 
 	
 	if (token.nome_atributo == 260 || token.nome_atributo == '(') { // 260(Id) e '(' são o conjunto First de 'Vars'
@@ -76,23 +74,51 @@ void Stmt() {
 		Vars();
 		if (token.nome_atributo == '=') {
 			token = proximo_token();
+			fim_do_codigo();	
 			Exps();
 		} /*else { // Para o futuro, quando iremos tratar os erros
 			erro();
 		} */
 
-	}
+	} else if (token.nome_atributo == 302) { // Keyword para 'do' na tabela de simbolos
+		// Stmt -> do Block end
+		printf("Keyword Do\n");
+	} else if (token.nome_atributo == 320) {// Keyword para 'while' na tabela de simbolos
+		// Stmt -> while Exp do Block end
+		printf("Keyword while\n");
+	} else if (token.nome_atributo == 309) { // Keyword para 'if' na tabela de simbolos
+		// Stmt -> if Exp Then Block (elseif Exp then Block)* (else Block)^opt end
+		printf("Keyword if\n");
+	} else if (token.nome_atributo == 326) { // Keyword para 'return' na tabela de simbolos
+		// Stmt -> return (Exps)^opt
+		printf("Keyword return\n");
+	} else if (token.nome_atributo == 301) { // Keyword para 'break' na tabela de simbolos
+		// Stmt -> break
+		printf("Keyword break\n");
+	} else if (token.nome_atributo == 307) { // Keyword para 'for' na tabela de simbolos
+		// Stmt -> for ForBlock
+		printf("Keyword para for\n");
+	} else if (token.nome_atributo == 308) { // Keyword para 'function'  na tabela de simbolos
+		// Stmt -> functions Name FunctionBody
+		printf("Keyword para function\n");
+	} else if (token.nome_atributo == 311) { // Keyword para 'local' na tabela de simbolos 
+		// Stmt -> local LocalBlock
+		printf("Keyword para local\n");
+	} /* else { // else para erro no futuro
+
+	} */
+
 }
 
 
 void Block() {
-	fim_do_codigo();	
 	
 
         // Block -> (Stmt;)*
 	Stmt();
-	if (token.nome_atributo == ';'){
+	if (token.nome_atributo == ';'){ // Caso seja ';', terminou corretamente, mas como fazer (Stmt;)*?
 		token = proximo_token();
+		fim_do_codigo();	
 		Stmt();
 	}
 
@@ -112,10 +138,12 @@ int main(int argc, char *argv[]) {
 	char *filename = argv[1];
 	code = readFile(filename);
 	
+	
 	if (code == NULL) {
 		printf("Arquivo não encontrado\n");
 	} else {
 		token = proximo_token();
+		fim_do_codigo();	
 		Block();
 	}
 			
