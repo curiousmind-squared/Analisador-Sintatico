@@ -1,13 +1,42 @@
 #include <stdio.h>
 #include "lexico.h"
 
+
+#define STMT 3
+
 Token token;
 char *code;
 
+void Erro(char function_type, unsigned int n_terminal) {
+	if (function_type == 'p') { // 'p' para 'primeiro' == 'first'
+		switch (n_terminal) {
+			case STMT:
+				/*
+				 Pseudo-codigo:
+				 Comparamos token com os "Firsts" de STMS
+				 Se não bater com nenhum, chamamos token de novo
+				 Se bater, caimos fora da função com o token na agulha
+				 */
+				size_t size = 0;
+				int firsts[] = {260, // "id"
+						'(',
+						};
+				
+
+		}
+	} else if (function_type == 's'){ // 's' para 'sequencia' == 'follow'
+	
+
+	} else {
+		printf("Você cagou no pau na chamada da funçao 'Erro'");
+		exit(1);
+	}
+}
+
 void fim_do_codigo() {
-	if (token.nome_atributo == -1){ // Será que terei que fazer isso sempre que chamar "proximo_token"?
+	if (token.nome_atributo == -1){ 
 		printf("End of File\n");
-		exit(0); // Sinceramente não sei se isso está certo, kalai do futuro irá resolver
+		exit(1); 
 	}
 }
 
@@ -83,27 +112,43 @@ void Stmt() {
 	} else if (token.nome_atributo == 302) { // Keyword para 'do' na tabela de simbolos
 		// Stmt -> do Block end
 		printf("Keyword Do\n");
+		token = proximo_token();
+		fim_do_codigo();
 	} else if (token.nome_atributo == 320) {// Keyword para 'while' na tabela de simbolos
 		// Stmt -> while Exp do Block end
 		printf("Keyword while\n");
+		token = proximo_token();
+		fim_do_codigo();
 	} else if (token.nome_atributo == 309) { // Keyword para 'if' na tabela de simbolos
 		// Stmt -> if Exp Then Block (elseif Exp then Block)* (else Block)^opt end
 		printf("Keyword if\n");
-	} else if (token.nome_atributo == 326) { // Keyword para 'return' na tabela de simbolos
+		token = proximo_token();
+		fim_do_codigo();
+	} else if (token.nome_atributo == 316) { // Keyword para 'return' na tabela de simbolos
 		// Stmt -> return (Exps)^opt
 		printf("Keyword return\n");
+		token = proximo_token();
+		fim_do_codigo();
 	} else if (token.nome_atributo == 301) { // Keyword para 'break' na tabela de simbolos
 		// Stmt -> break
 		printf("Keyword break\n");
+		token = proximo_token();
+		fim_do_codigo();
 	} else if (token.nome_atributo == 307) { // Keyword para 'for' na tabela de simbolos
 		// Stmt -> for ForBlock
 		printf("Keyword para for\n");
+		token = proximo_token();
+		fim_do_codigo();
 	} else if (token.nome_atributo == 308) { // Keyword para 'function'  na tabela de simbolos
 		// Stmt -> functions Name FunctionBody
 		printf("Keyword para function\n");
+		token = proximo_token();
+		fim_do_codigo();
 	} else if (token.nome_atributo == 311) { // Keyword para 'local' na tabela de simbolos 
 		// Stmt -> local LocalBlock
 		printf("Keyword para local\n");
+		token = proximo_token();
+		fim_do_codigo();
 	} /* else { // else para erro no futuro
 
 	} */
@@ -118,14 +163,14 @@ void Block() {
 	Stmt();
 	if (token.nome_atributo == ';'){ // Caso seja ';', terminou corretamente, mas como fazer (Stmt;)*?
 		token = proximo_token();
-		fim_do_codigo();	
-		Stmt();
+		// fim_do_codigo(); // Acho que nesse caso não precisamos chamar "fim_do_codigo"
+		if (token.nome_atributo == -1) return;
+		else Block();
+	} else {
+		printf("Erro, esperado ';'\n");
+		Erro('p', STMT);  
+		Block();
 	}
-
-	/* TODO: No futuro teremos que adicionar esse reconhecimento para erro
-	else
-		erro();
-	*/
 	
 }
 
@@ -146,6 +191,7 @@ int main(int argc, char *argv[]) {
 		fim_do_codigo();	
 		Block();
 	}
+	printf("Análise sintática realizada com sucesso\n");
 			
 	free(code);
 	return 0;
