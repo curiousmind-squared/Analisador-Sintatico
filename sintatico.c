@@ -7,6 +7,9 @@
 Token token;
 char *code;
 
+
+void fim_do_codigo();
+
 void Erro(char function_type, unsigned int n_terminal) {
 	if (function_type == 'p') { // 'p' para 'primeiro' == 'first'
 		switch (n_terminal) {
@@ -17,10 +20,28 @@ void Erro(char function_type, unsigned int n_terminal) {
 				 Se não bater com nenhum, chamamos token de novo
 				 Se bater, caimos fora da função com o token na agulha
 				 */
-				size_t size = 0;
+				size_t firsts_size = 10;
 				int firsts[] = {260, // "id"
 						'(',
+						302,
+						320,
+						309,
+						316,
+						301,
+						307,
+						308,
+						311
 						};
+				for (size_t i=0; i<firsts_size; i++) {
+					if (token.nome_atributo == firsts[i]) {
+						return;
+					}
+				}
+				
+				// Se chegamos aqui, o token atual não bate com nenhum first e n faz sentido
+				token = proximo_token();
+				fim_do_codigo();
+				Erro('p', n_terminal);
 				
 
 		}
