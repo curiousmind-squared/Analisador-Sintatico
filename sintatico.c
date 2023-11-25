@@ -42,6 +42,7 @@ void Erro(char function_type, unsigned int n_terminal) {
 				token = proximo_token();
 				fim_do_codigo();
 				Erro('p', n_terminal);
+				break;
 				
 
 		}
