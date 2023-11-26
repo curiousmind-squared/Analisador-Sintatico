@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdbool.h>
 #include "lexico.h"
 
 
@@ -7,9 +8,43 @@
 Token token;
 char *code;
 
+size_t firsts_size_STMT = 10;
+int firsts_STMT[] = {260, 
+		'(',
+		302,
+		320,
+		309,
+		316,
+		301,
+		307,
+		308,
+		311
+};
+
+
 
 void fim_do_codigo();
 void Block();
+
+
+bool esta_no_conjunto(char function_type, unsigned int n_terminal) {
+	if (function_type == 'p') {
+		switch(n_terminal) {
+			case STMT:
+				for (size_t i=0; i<firsts_size_STMT;i++) {
+					if (firsts_STMT[i] == token.nome_atributo)
+						return true;
+				}
+				return false;
+		}
+	} else if (function_type == 's') {
+		return false;
+	} else {
+		printf("Cagou no pau na chamada da função 'esta_no_conjunto'\n");
+		exit(1);
+	}
+	return false; // NOTE: Só coloquei para essa merda de editor parar de ficar enchendo o saco
+}
 
 /* // Isso aqui ainda não está pronto
 void Erro(char function_type, unsigned int n_terminal) {
@@ -171,10 +206,15 @@ void Stmt() {
 
 }
 
+
 void StmtList1() {
 	// StmtList1 -> Stmt ; StmtList | vazio
 	
-
+	if (esta_no_conjunto('p', STMT)){
+		Stmt();
+	} else {
+	   	return;
+	}
 }
 
 void StmtList() {
@@ -184,7 +224,7 @@ void StmtList() {
 		token = proximo_token();
 		if (token.nome_atributo == -1) return;
 		else StmtList1();
-	} /*else { 
+	} /*else { // TODO: Se der erro, vamos procurar o first de 'StmtList1' 
 		printf("Erro, esperado ';'\n");
 		Erro('p', STMT);  
 		Block();
