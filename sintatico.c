@@ -101,12 +101,12 @@ void fim_do_codigo() {
 }
 
 void Var() {
-	// Var -> name | Prefixexp [ Exp ]
+	// Var -> name | PrefixExp [ Exp ]
 
 	if (token.nome_atributo == 260) {
 		token = proximo_token();
 		fim_do_codigo();
-	} else if (token.nome_atributo == '(') { // TODO: Pensar se isso aqui está certo, to imaginando que quando chegamos aqui estamos vindo de 'PrefixExp'
+	} else if (token.nome_atributo == '(') { 
 		token = proximo_token();
 		fim_do_codigo();
 	}
@@ -120,7 +120,7 @@ void BinOp() {
 		token = proximo_token();
 		fim_do_codigo();
 		return;
-	}
+	} // else é por que ocorreu algum erro e teremos que recuperar 
 }
 
 void ExpBlock() { 
@@ -133,15 +133,17 @@ void ExpBlock() {
 		Exp();
 
 		ExpBlock();
-	} // else deu algum erro e teremos que tratar	
-	
-	
-
+	} else {
+		return;
+	} 
 }
 
 void PeBlock() {
 	// PeBlock → [ Exp ] PeBlock | ε
 	if (token.nome_atributo == '[') {
+		token = proximo_token();
+		fim_do_codigo();
+
 		Exp();
 		if (token.nome_atributo == ']') {
 			PeBlock();
@@ -170,11 +172,11 @@ void PrefixExp() {
 			gate=true;
 		} // else é por que ocorreu algum erro e teremos que recuperar
 
-	}
+	} // else é por que ocorreu algum erro e teremos que recuperar
 	
 	if (gate) {
 		PeBlock();
-	} // else é por que deu algum erro e n faço ideia do que fzr por enquanto kkkkkkkkkkkkk
+	} 
 }
 
 void FieldList() {
@@ -203,6 +205,9 @@ void Exp() {
 		PrefixExp();
 		gate = true;
 	} else if (token.nome_atributo == '{') {
+		token = proximo_token();
+		fim_do_codigo();
+
 		FieldList();
 		gate = true;
 	} else {
@@ -223,6 +228,9 @@ void Exp() {
 		}
 	}
 	if (gate) {
+		token = proximo_token();
+		fim_do_codigo();
+
 		ExpBlock();	
 	} // else é por que deu algum erro e teremos que recuperar
 
@@ -231,6 +239,9 @@ void Exp() {
 void ExpList() {
 	// ExpList → , Exp ExpList | ε 
 	if (token.nome_atributo == ',') {
+		token = proximo_token();
+		fim_do_codigo();
+
 		Exp();
 		ExpList();
 	} else {
@@ -242,15 +253,14 @@ void Exps() {
 	// Exps -> Exp ExpList
 	Exp();
 	ExpList();
-	if (token.nome_atributo == ',') {
-		Exp();
-	}
-
 }
 
 void VarList() {
 	// VarList -> , Var VarList | vazio
 	if (token.nome_atributo == ',') {
+		token = proximo_token();
+		fim_do_codigo();
+
 		Var();
 		VarList();
 	} else {
@@ -316,6 +326,27 @@ void ElseBlock() {
 	ElseEndBlock();	
 }
 
+void ExpsOpt() {
+	bool gate = false;
+	size_t exps_possibilities_size = 11;
+	int exps_possibilities[] = {260, '(', '{', 313, '-', 308, 312, 318, 306, 261, 270};
+
+	for (size_t i=0;i<exps_possibilities_size;i++) {
+		if (exps_possibilities[i] == token.nome_atributo) {
+			gate=true;
+		}
+	}
+
+	if (gate) {
+		Exps();
+	} else {
+		return;
+	}
+} 
+
+void ForBlock() {
+	
+}
 
 void Stmt() {
 
@@ -374,7 +405,7 @@ void Stmt() {
 		// Stmt -> return ExpsOpt
 		token = proximo_token();
 		fim_do_codigo();
-		//ExpsOpt(); // TODO: Implementar ExpsOpt
+		ExpsOpt(); 
 		
 	} else if (token.nome_atributo == 301) { // Keyword para 'break' na tabela de simbolos
 		// Stmt -> break
@@ -387,18 +418,20 @@ void Stmt() {
 
 		token = proximo_token();
 		fim_do_codigo();
-		//ForBlock(); // TODO: Implementar ForBlock
+		ForBlock(); 
 	} else if (token.nome_atributo == 308) { // Keyword para 'function'  na tabela de simbolos
-		// Stmt -> LocalOpt function name FunctionBody
+		// Stmt → function name FunctionBody
 		
-		// TODO: Acho que isso aqui vai ser um problema, pois teremos que alterar o first de Stmt, qual o first de LocalOpt?
+		token = proximo_token();
+		fim_do_codigo();
+		FunctionBody();
 
 	} else if (token.nome_atributo == 311) { // Keyword para 'local' na tabela de simbolos 
-		// Stmt -> local Names = Exps
+		// Stmt → local LocalBlock
 
 		token = proximo_token();
 		fim_do_codigo();
-		//Names(); // TODO: Implementar Names
+		LocalBlock();
 
 	} /* else { // else para erro no futuro
 
