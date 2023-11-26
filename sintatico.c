@@ -25,6 +25,7 @@ int firsts_STMT[] = {260,
 
 void fim_do_codigo();
 void Block();
+void Exp();
 
 
 bool esta_no_conjunto(char function_type, unsigned int n_terminal) {
@@ -100,57 +101,136 @@ void fim_do_codigo() {
 }
 
 void Var() {
+	// Var -> name | Prefixexp [ Exp ]
 
 	if (token.nome_atributo == 260) {
 		token = proximo_token();
 		fim_do_codigo();
-	} else if (token.nome_atributo == '(') { // TODO: Pensar se isso aqui está certo, to imaginando que quando chegamos aqui estamos vindo de 'Prefixexp'
+	} else if (token.nome_atributo == '(') { // TODO: Pensar se isso aqui está certo, to imaginando que quando chegamos aqui estamos vindo de 'PrefixExp'
 		token = proximo_token();
 		fim_do_codigo();
 	}
-	/* Futura função para erro 
-	else {
-		erro();
-	}
-	*/
 }
 
 void ExpBlock() { // Por enquanto isso aqui não vai fazer nada
 	return;
 }
 
-void Exp() {
-	// Essa aqui é muito grande, vou fazer só uma agora para testar
-	if (token.nome_atributo == 261) {
+void PeBlock() {
+
+	
+}
+
+void PrefixExp() {
+	// PrefixExp -> name PeBlock | ( Exp ) PeBlock
+	
+	bool gate = false;
+
+	if (token.nome_atributo == 260) {
 		token = proximo_token();
 		fim_do_codigo();
-		ExpBlock();
+		gate=true;
+	} else if (token.nome_atributo == '(') {
+		token = proximo_token();
+		fim_do_codigo();
+		Exp();
+		if (token.nome_atributo == ')') {
+			token = proximo_token();
+			fim_do_codigo();
+			gate=true;
+		} // else é por que ocorreu algum erro e teremos que recuperar
+
+	}
+	
+	if (gate) {
+		PeBlock();
+	} // else é por que deu algum erro e n faço ideia do que fzr por enquanto kkkkkkkkkkkkk
+}
+
+void FieldList() {
+
+}
+
+void Exp() {
+	/*  Exatemante na ordem em que são analisados
+	Exp → PrefixExp ExpBlock
+	
+	Exp → { FieldList } ExpBlock
+
+	Exp → not ExpBlock
+	Exp → - ExpBlock
+	Exp → function ExpBlock
+	Exp → nil ExpBlock
+	Exp → true ExpBlock
+	Exp → false ExpBlock
+	Exp → number ExpBlock
+	Exp → string ExpBlock  
+	 */
+	
+	bool gate = false;
+
+	if (token.nome_atributo == 260 || token.nome_atributo == '(') {
+		PrefixExp();
+		gate = true;
+	} else if (token.nome_atributo == '{') {
+		FieldList();
+		gate = true;
+	} else {
+		size_t exps_possibilities_size = 8;
+		int exps_possibilities[] = {313,
+				'-',
+				308,
+				312,
+				318,
+				306,
+				261,
+				270
+				};	
+		for (size_t i=0; i<exps_possibilities_size; i++) {
+			if (exps_possibilities[i] == token.nome_atributo){
+				gate = true;
+			}
+		}
+	}
+	if (gate) {
+		ExpBlock();	
+	} // else é por que deu algum erro e teremos que recuperar
+
+}
+
+void ExpList() {
+	if (token.nome_atributo == ',') {
+		Exp();
+		ExpList();
+	} else {
+		return;
 	}
 }
 
 void Exps() {
-	
-
-	// Exps -> Exp (,Exp)*
+	// Exps -> Exp ExpList
 	Exp();
+	ExpList();
 	if (token.nome_atributo == ',') {
 		Exp();
 	}
-	// Imagino que não precise chamar 'erro' aqui, mas não sei ainda
-
 
 }
 
-void Vars() {
-	
-
-	// Vars -> Var (,Var)*
-	Var();
+void VarList() {
+	// VarList -> , Var VarList | vazio
 	if (token.nome_atributo == ',') {
 		Var();
+		VarList();
+	} else {
+		return;
 	}
-	// Imagino que não precise chamar 'erro' aqui, mas não sei ainda
+}
 
+void Vars() {
+	// Vars -> Var VarList
+	Var();
+	VarList();
 }
 
 
@@ -170,35 +250,72 @@ void Stmt() {
 
 	} else if (token.nome_atributo == 302) { // Keyword para 'do' na tabela de simbolos
 		// Stmt -> do Block end
+
+		token = proximo_token();
+		fim_do_codigo();
 		Block();
+
 		if (token.nome_atributo == 305) {
 			token = proximo_token();
+			fim_do_codigo();
 			return;
 		} 
 	} else if (token.nome_atributo == 320) {// Keyword para 'while' na tabela de simbolos
 		// Stmt -> while Exp do Block end
+
+		token = proximo_token();
+		fim_do_codigo();
 		Exp();
+
 		if (token.nome_atributo == 302) {
 			Block();
 			if (token.nome_atributo == 305){
 				token = proximo_token();
+				fim_do_codigo();
 				return;
 			}
 		}
 	} else if (token.nome_atributo == 309) { // Keyword para 'if' na tabela de simbolos
 		// Stmt -> if Exp Then Block ElseBlock
 
+		token = proximo_token();
+		fim_do_codigo();
+		Exp();
+
+		if (token.nome_atributo == 317) {
+			Block();
+			//ElseBlock(); // TODO: Implementar ElseBlock
+		}
+
 	} else if (token.nome_atributo == 316) { // Keyword para 'return' na tabela de simbolos
 		// Stmt -> return ExpsOpt
+		token = proximo_token();
+		fim_do_codigo();
+		//ExpsOpt(); // TODO: Implementar ExpsOpt
+		
 	} else if (token.nome_atributo == 301) { // Keyword para 'break' na tabela de simbolos
 		// Stmt -> break
+		token = proximo_token();
+		fim_do_codigo();
+		return;
 
 	} else if (token.nome_atributo == 307) { // Keyword para 'for' na tabela de simbolos
 		// Stmt -> for ForBlock
+
+		token = proximo_token();
+		fim_do_codigo();
+		//ForBlock(); // TODO: Implementar ForBlock
 	} else if (token.nome_atributo == 308) { // Keyword para 'function'  na tabela de simbolos
 		// Stmt -> LocalOpt function name FunctionBody
+		
+		// TODO: Acho que isso aqui vai ser um problema, pois teremos que alterar o first de Stmt, qual o first de LocalOpt?
+
 	} else if (token.nome_atributo == 311) { // Keyword para 'local' na tabela de simbolos 
 		// Stmt -> local Names = Exps
+
+		token = proximo_token();
+		fim_do_codigo();
+		//Names(); // TODO: Implementar Names
 
 	} /* else { // else para erro no futuro
 
