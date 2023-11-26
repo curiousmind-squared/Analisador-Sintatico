@@ -26,7 +26,7 @@ int firsts_STMT[] = {260,
 void fim_do_codigo();
 void Block();
 void Exp();
-
+void NameList();
 
 bool esta_no_conjunto(char function_type, unsigned int n_terminal) {
 	if (function_type == 'p') {
@@ -128,6 +128,7 @@ void ExpBlock() {
 	
 
 	if (token.nome_atributo == 259 || token.nome_atributo == 300 || token.nome_atributo == 314 || token.nome_atributo == 268 || token.nome_atributo == '+' || token.nome_atributo == '-' || token.nome_atributo == '*' || token.nome_atributo == '/' || token.nome_atributo == '^') {
+		// Não consumimos o token da agulha pois estamos analisando os firsts
 		BinOp();
 	
 		Exp();
@@ -179,7 +180,65 @@ void PrefixExp() {
 	} 
 }
 
+void Field() {
+	if (token.nome_atributo == '[') {
+		// Field → [ Exp ] = Exp
+		token = proximo_token();
+		fim_do_codigo();
+
+		Exp();
+
+		if (token.nome_atributo == ']') {
+			token = proximo_token();
+			fim_do_codigo();
+
+			if (token.nome_atributo == '=') {
+				token = proximo_token();
+				fim_do_codigo();
+
+				Exp();
+			} // else erro
+		} // else erro
+
+	} else if (token.nome_atributo == 260) {
+		// Field → name = Exp
+		token = proximo_token();
+		fim_do_codigo();
+
+		if (token.nome_atributo == '=') {
+			token = proximo_token();
+			fim_do_codigo();
+
+			Exp();
+		} // else erro
+	}
+}
+
+void FieldRest() {
+	// FieldRest → , Field FieldRest | ε
+	if (token.nome_atributo == ',') {
+		token = proximo_token();
+		fim_do_codigo();
+
+		Field();
+		FieldRest();
+
+	} else {
+		return;
+	}
+}
+
 void FieldList() {
+	// FieldList → Field FieldRest | ε
+	if (token.nome_atributo == '[' || token.nome_atributo == 260) {
+		// Não consumimos o token da agulha por ser analise de first
+
+		Field();
+		FieldRest();
+
+	} else {
+		return;
+	}
 
 }
 
@@ -202,6 +261,7 @@ void Exp() {
 	bool gate = false;
 
 	if (token.nome_atributo == 260 || token.nome_atributo == '(') {
+		// Não consumimos o token da agulha pois estamos analisando o first
 		PrefixExp();
 		gate = true;
 	} else if (token.nome_atributo == '{') {
@@ -344,8 +404,139 @@ void ExpsOpt() {
 	}
 } 
 
+void ExpOpt1() {
+	// ExpOpt1 → , Exp | ε
+	if (token.nome_atributo == ',') {
+		token = proximo_token();
+		fim_do_codigo();
+
+		Exp();
+	} else {
+		return;
+	}
+}
+
 void ForBlock() {
+
+	if (token.nome_atributo == '=') {
+		// ForBlock → = Exp , Exp ExpOpt1 do Block end
+		token = proximo_token();
+		fim_do_codigo();
+
+		Exp();
+
+		if (token.nome_atributo == ',') {
+			token = proximo_token();
+			fim_do_codigo();
+
+			Exp();
+			ExpOpt1();
+
+			if (token.nome_atributo == 302) {
+				token = proximo_token();
+				fim_do_codigo();
+
+				Block();
+
+				if (token.nome_atributo == 305) {
+					token = proximo_token();
+					fim_do_codigo();
+
+					return;
+				} // else temos erros para analisar(no off, tem erro PARA CARALHO para analisar, fudeufudeufudeufudeu)
+			} // else temos erros para analisar
+
+
+		} // else vamos ter que analisar o erro
+
 	
+
+
+	} else if (token.nome_atributo == ',') {
+		// ForBlock → NameList in Exps do Block end
+		// Não vamos consumir o token da agulha porque aqui é uma análise do first
+		NameList();	
+	} // else temos um erro para tratar(tem erro para tratar até o cú fazer bico)
+
+	
+}
+
+void NameList() {
+	if (token.nome_atributo == ',') {
+		token = proximo_token();
+		fim_do_codigo();
+
+		if (token.nome_atributo == 260) {
+			NameList();
+		} // else, erro
+
+	} else {
+		return;
+	}
+}
+
+void Names() {
+	if (token.nome_atributo == 260) {
+		token = proximo_token();
+		fim_do_codigo();
+		NameList();
+	}
+}
+
+void Params() {
+	Names();
+}
+
+void ParamsList() {
+	if (token.nome_atributo == 260) {
+		// Não consumimos o token por ser uma análise de first
+		Params();
+	} else {
+		return;
+	}
+}
+
+void FunctionBody() {
+	// FunctionBody → name ParamsList block end
+	
+	if (token.nome_atributo == 260) {
+		token = proximo_token();
+		fim_do_codigo();
+
+		ParamsList();
+		Block();
+		if (token.nome_atributo == 305) {
+			token = proximo_token();
+			fim_do_codigo();
+		} // else, msm história de smp
+
+	} // else, já sabe né
+
+
+}
+
+void LocalBlock() {
+	if (token.nome_atributo == 308) {
+		// LocalBlock → function name FunctionBody
+		token = proximo_token();
+		fim_do_codigo();
+
+		if (token.nome_atributo == 260) {
+			token = proximo_token();
+			fim_do_codigo();
+
+			FunctionBody();
+		} // else erro
+
+	} else if (token.nome_atributo == 260) {
+		// LocalBlock → Names = Exps
+		// Não consumimos o token da agulha porque é uma analise de first
+		Names();
+
+		if (token.nome_atributo == '=') {
+			Exps();
+		} // else erro
+	} // else erro
 }
 
 void Stmt() {
@@ -414,11 +605,18 @@ void Stmt() {
 		return;
 
 	} else if (token.nome_atributo == 307) { // Keyword para 'for' na tabela de simbolos
-		// Stmt -> for ForBlock
-
+		// for name ForBlock
+		
 		token = proximo_token();
 		fim_do_codigo();
-		ForBlock(); 
+
+		if (token.nome_atributo == 260) {
+			token = proximo_token();
+			fim_do_codigo();
+
+			ForBlock(); 
+		} // else temos um erro para tratar(mais um! ihuuul)
+
 	} else if (token.nome_atributo == 308) { // Keyword para 'function'  na tabela de simbolos
 		// Stmt → function name FunctionBody
 		
