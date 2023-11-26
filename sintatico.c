@@ -9,6 +9,7 @@ char *code;
 
 
 void fim_do_codigo();
+void Block();
 
 void Erro(char function_type, unsigned int n_terminal) {
 	if (function_type == 'p') { // 'p' para 'primeiro' == 'first'
@@ -21,7 +22,7 @@ void Erro(char function_type, unsigned int n_terminal) {
 				 Se bater, caimos fora da função com o token na agulha
 				 */
 				size_t firsts_size = 10;
-				int firsts[] = {260, // "id"
+				int firsts[] = {260, 
 						'(',
 						302,
 						320,
@@ -38,7 +39,7 @@ void Erro(char function_type, unsigned int n_terminal) {
 					}
 				}
 				
-				// Se chegamos aqui, o token atual não bate com nenhum first e n faz sentido
+				
 				token = proximo_token();
 				fim_do_codigo();
 				Erro('p', n_terminal);
@@ -133,14 +134,21 @@ void Stmt() {
 
 	} else if (token.nome_atributo == 302) { // Keyword para 'do' na tabela de simbolos
 		// Stmt -> do Block end
-		printf("Keyword Do\n");
-		token = proximo_token();
-		fim_do_codigo();
+		Block();
+		if (token.nome_atributo == 305) {
+			token = proximo_token();
+			return;
+		} 
 	} else if (token.nome_atributo == 320) {// Keyword para 'while' na tabela de simbolos
 		// Stmt -> while Exp do Block end
-		printf("Keyword while\n");
-		token = proximo_token();
-		fim_do_codigo();
+		Exp();
+		if (token.nome_atributo == 302) {
+			Block();
+			if (token.nome_atributo == 305){
+				token = proximo_token();
+				return;
+			}
+		}
 	} else if (token.nome_atributo == 309) { // Keyword para 'if' na tabela de simbolos
 		// Stmt -> if Exp Then Block (elseif Exp then Block)* (else Block)^opt end
 		printf("Keyword if\n");
@@ -181,11 +189,12 @@ void Stmt() {
 void Block() {
 	
 
-        // Block -> (Stmt;)*
-	Stmt();
-	if (token.nome_atributo == ';'){ // Caso seja ';', terminou corretamente, mas como fazer (Stmt;)*?
+        // Block -> StmtList
+	// StmtList -> Stmt ; StmtList1
+	// StmtList1 -> Stmt ; StmtList | vazio
+	StmtList();
+	if (token.nome_atributo == ';'){ 
 		token = proximo_token();
-		// fim_do_codigo(); // Acho que nesse caso não precisamos chamar "fim_do_codigo"
 		if (token.nome_atributo == -1) return;
 		else Block();
 	} else {
