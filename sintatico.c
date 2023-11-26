@@ -11,16 +11,17 @@ char *code;
 void fim_do_codigo();
 void Block();
 
+/* // Isso aqui ainda não está pronto
 void Erro(char function_type, unsigned int n_terminal) {
 	if (function_type == 'p') { // 'p' para 'primeiro' == 'first'
 		switch (n_terminal) {
 			case STMT:
-				/*
-				 Pseudo-codigo:
-				 Comparamos token com os "Firsts" de STMS
-				 Se não bater com nenhum, chamamos token de novo
-				 Se bater, caimos fora da função com o token na agulha
-				 */
+				
+				 // Pseudo-codigo:
+				 // Comparamos token com os "Firsts" de STMS
+				 // Se não bater com nenhum, chamamos token de novo
+				 // Se bater, caimos fora da função com o token na agulha
+				 
 				size_t firsts_size = 10;
 				int firsts[] = {260, 
 						'(',
@@ -55,7 +56,7 @@ void Erro(char function_type, unsigned int n_terminal) {
 		exit(1);
 	}
 }
-
+*/
 void fim_do_codigo() {
 	if (token.nome_atributo == -1){ 
 		printf("End of File\n");
@@ -150,59 +151,49 @@ void Stmt() {
 			}
 		}
 	} else if (token.nome_atributo == 309) { // Keyword para 'if' na tabela de simbolos
-		// Stmt -> if Exp Then Block (elseif Exp then Block)* (else Block)^opt end
-		printf("Keyword if\n");
-		token = proximo_token();
-		fim_do_codigo();
+		// Stmt -> if Exp Then Block ElseBlock
+
 	} else if (token.nome_atributo == 316) { // Keyword para 'return' na tabela de simbolos
-		// Stmt -> return (Exps)^opt
-		printf("Keyword return\n");
-		token = proximo_token();
-		fim_do_codigo();
+		// Stmt -> return ExpsOpt
 	} else if (token.nome_atributo == 301) { // Keyword para 'break' na tabela de simbolos
 		// Stmt -> break
-		printf("Keyword break\n");
-		token = proximo_token();
-		fim_do_codigo();
+
 	} else if (token.nome_atributo == 307) { // Keyword para 'for' na tabela de simbolos
 		// Stmt -> for ForBlock
-		printf("Keyword para for\n");
-		token = proximo_token();
-		fim_do_codigo();
 	} else if (token.nome_atributo == 308) { // Keyword para 'function'  na tabela de simbolos
-		// Stmt -> functions Name FunctionBody
-		printf("Keyword para function\n");
-		token = proximo_token();
-		fim_do_codigo();
+		// Stmt -> LocalOpt function name FunctionBody
 	} else if (token.nome_atributo == 311) { // Keyword para 'local' na tabela de simbolos 
-		// Stmt -> local LocalBlock
-		printf("Keyword para local\n");
-		token = proximo_token();
-		fim_do_codigo();
+		// Stmt -> local Names = Exps
+
 	} /* else { // else para erro no futuro
 
 	} */
 
 }
 
-
-void Block() {
+void StmtList1() {
+	// StmtList1 -> Stmt ; StmtList | vazio
 	
 
-        // Block -> StmtList
+}
+
+void StmtList() {
 	// StmtList -> Stmt ; StmtList1
-	// StmtList1 -> Stmt ; StmtList | vazio
-	StmtList();
+	Stmt();
 	if (token.nome_atributo == ';'){ 
 		token = proximo_token();
 		if (token.nome_atributo == -1) return;
-		else Block();
-	} else {
+		else StmtList1();
+	} /*else { 
 		printf("Erro, esperado ';'\n");
 		Erro('p', STMT);  
 		Block();
-	}
-	
+	}*/
+}
+
+void Block() {
+        // Block -> StmtList
+	StmtList();
 }
 
 int main(int argc, char *argv[]) {
