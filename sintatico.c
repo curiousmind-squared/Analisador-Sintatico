@@ -112,13 +112,43 @@ void Var() {
 	}
 }
 
-void ExpBlock() { // Por enquanto isso aqui não vai fazer nada
-	return;
+void BinOp() {
+	// BinOp → or | and | < | > | <= | >= | ~= | == | … | + | - | * | / | ^
+	
+	// Isso ficou bem redundante eu sei, mas pelo bem de seguir a gramática, por enquanto irá ficar assim
+	if (token.nome_atributo == 259 || token.nome_atributo == 300 || token.nome_atributo == 314 || token.nome_atributo == 268 || token.nome_atributo == '+' || token.nome_atributo == '-' || token.nome_atributo == '*' || token.nome_atributo == '/' || token.nome_atributo == '^') {
+		token = proximo_token();
+		fim_do_codigo();
+		return;
+	}
+}
+
+void ExpBlock() { 
+	// ExpBlock → BinOp Exp ExpBlock | ε
+	
+
+	if (token.nome_atributo == 259 || token.nome_atributo == 300 || token.nome_atributo == 314 || token.nome_atributo == 268 || token.nome_atributo == '+' || token.nome_atributo == '-' || token.nome_atributo == '*' || token.nome_atributo == '/' || token.nome_atributo == '^') {
+		BinOp();
+	
+		Exp();
+
+		ExpBlock();
+	} // else deu algum erro e teremos que tratar	
+	
+	
+
 }
 
 void PeBlock() {
-
-	
+	// PeBlock → [ Exp ] PeBlock | ε
+	if (token.nome_atributo == '[') {
+		Exp();
+		if (token.nome_atributo == ']') {
+			PeBlock();
+		} // else aqui temos que colocar um erro
+	} else {
+		return;
+	}
 }
 
 void PrefixExp() {
@@ -199,6 +229,7 @@ void Exp() {
 }
 
 void ExpList() {
+	// ExpList → , Exp ExpList | ε 
 	if (token.nome_atributo == ',') {
 		Exp();
 		ExpList();
@@ -231,6 +262,58 @@ void Vars() {
 	// Vars -> Var VarList
 	Var();
 	VarList();
+}
+
+void ElseEndBlock() {
+	// ElseEndBlock → else Block end | end
+	if (token.nome_atributo == 303) {
+		token = proximo_token();
+		fim_do_codigo();
+
+		Block();
+
+		if (token.nome_atributo == 305) {
+			token = proximo_token();
+			fim_do_codigo();
+			return;
+		}
+
+	} else if (token.nome_atributo == 305) {
+		token = proximo_token();
+		fim_do_codigo();
+		return;
+	} // else teremos um erro
+}
+
+void ElseIfBlock() {
+	// ElseIfBlock → elseif Exp then Block ElseIfBlock | ε
+	if (token.nome_atributo == 304) {
+		token = proximo_token();
+		fim_do_codigo();
+		
+		Exp();
+
+		if (token.nome_atributo == 317) {
+			token = proximo_token();
+			fim_do_codigo();
+			
+			Block();
+			ElseIfBlock();
+
+		} // else aqui teremos que ter um erro
+
+
+
+	} else {
+		return;
+	}
+}
+
+void ElseBlock() {
+	// ElseBlock → ElseIfBlock ElseEndBlock
+	ElseIfBlock();
+
+	ElseEndBlock();	
 }
 
 
@@ -284,7 +367,7 @@ void Stmt() {
 
 		if (token.nome_atributo == 317) {
 			Block();
-			//ElseBlock(); // TODO: Implementar ElseBlock
+			ElseBlock(); 
 		}
 
 	} else if (token.nome_atributo == 316) { // Keyword para 'return' na tabela de simbolos
