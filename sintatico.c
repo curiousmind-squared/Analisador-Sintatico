@@ -8,6 +8,7 @@
 
 #define STMT 3
 #define STMTLIST1 4
+#define EXPS 5
 
 Token token;
 char *code;
@@ -28,6 +29,7 @@ int firsts_STMT[] = {260,
 
 
 
+void Stmtlist1();
 void fim_do_codigo();
 void Block();
 void Exp();
@@ -64,7 +66,7 @@ void Erro(char function_type, unsigned int n_terminal) {
 				 // Se bater, caimos fora da função com o token na agulha
 				 
 				size_t firsts_size = 10;
-				int firsts[] = {260, 
+				int firsts_stmtlist1[] = {260, 
 						'(',
 						302,
 						320,
@@ -76,7 +78,7 @@ void Erro(char function_type, unsigned int n_terminal) {
 						311
 						};
 				for (size_t i=0; i<firsts_size; i++) {
-					if (token.nome_atributo == firsts[i]) {
+					if (token.nome_atributo == firsts_stmtlist1[i]) {
 						return;
 					}
 				}
@@ -86,10 +88,46 @@ void Erro(char function_type, unsigned int n_terminal) {
 				fim_do_codigo();
 				Erro('p', n_terminal);
 				break;
-				
+			case EXPS:
+				size_t firsts_exps_size = 11;
+				int firsts_exps[] = { 313,
+						      '-',
+						      260,
+						      '(',
+						      308,
+						      '{',
+						      312,
+						      318,
+						      306,
+						      261,
+						      270
+
+				};
+				for (size_t i=0;i<firsts_exps_size;i++) {
+					if (token.nome_atributo == firsts_exps[i]){
+						return;
+					}
+				}
+
+				token = proximo_token();
+				fim_do_codigo();
+				Erro('p', n_terminal);
+				break;
+					
 
 		}
 	} else if (function_type == 's'){ // 's' para 'sequencia' == 'follow'
+		switch(n_terminal) {
+			case STMT:
+				if (token.nome_atributo == ';') {
+					return;
+				}
+
+				token = proximo_token();
+				fim_do_codigo();
+				Erro('s', n_terminal);
+				break;
+		}
 	
 
 	} else {
@@ -100,7 +138,7 @@ void Erro(char function_type, unsigned int n_terminal) {
 
 void fim_do_codigo() {
 	if (token.nome_atributo == -1){ 
-		printf("End of File\n");
+		printf( RED "Unexpected End of File\n" RESET);
 		exit(1); 
 	}
 }
@@ -563,9 +601,13 @@ void Stmt() {
 			token = proximo_token();
 			fim_do_codigo();	
 			Exps();
-		} /*else { // Para o futuro, quando iremos tratar os erros
-			erro();
-		} */
+		} else {
+			erro=true;
+			printf( RED "Erro, esperado '='\n" RESET );
+			Erro('p', EXPS);
+			Exps();
+
+		} 
 
 	} else if (token.nome_atributo == 302) { // Keyword para 'do' na tabela de simbolos
 		// Stmt -> do Block end
@@ -577,6 +619,11 @@ void Stmt() {
 		if (token.nome_atributo == 305) {
 			token = proximo_token();
 			fim_do_codigo();
+			return;
+		} else {
+			erro=true;
+			printf( RED "Erro, esperado 'end'\n" RESET );
+			Erro('s', STMT);
 			return;
 		} 
 	} else if (token.nome_atributo == 320) {// Keyword para 'while' na tabela de simbolos
@@ -657,9 +704,12 @@ void Stmt() {
 		fim_do_codigo();
 		LocalBlock();
 
-	} /* else { // else para erro no futuro
-
-	} */
+	}  else {
+		erro = true;
+		printf( RED "Erro, era esperado um dos símbolos first de Statement\n" RESET);
+		Erro('s', STMT);
+		StmtList1();
+	} 
 
 }
 
@@ -674,7 +724,12 @@ void StmtList1() {
 			//fim_do_codigo();
 
 			StmtList1();
-		} // else erro
+		} else {
+			erro = true;
+			printf( RED "Erro, esperado ';'\n" RESET);
+			Erro('p', STMTLIST1);
+			StmtList1();
+		}
 	} else {
 	   	return;
 	}
@@ -687,7 +742,7 @@ void StmtList() {
 		token = proximo_token();
 		if (token.nome_atributo == -1) return;
 		else StmtList1();
-	} else { // TODO: Se der erro, vamos procurar o first de 'StmtList1' 
+	} else { 
 		erro = true;
 		printf( RED "Erro, esperado ';'\n" RESET);
 		Erro('p', STMTLIST1);  
