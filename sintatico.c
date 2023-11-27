@@ -534,6 +534,9 @@ void LocalBlock() {
 		Names();
 
 		if (token.nome_atributo == '=') {
+			token = proximo_token();
+			fim_do_codigo();
+
 			Exps();
 		} // else erro
 	} // else erro
@@ -639,17 +642,23 @@ void Stmt() {
 
 
 void StmtList1() {
-	// StmtList1 -> Stmt ; StmtList | vazio
+	// StmtList1 → Stmt ; StmtList1 | ε
 	
 	if (esta_no_conjunto('p', STMT)){
 		Stmt();
+		if (token.nome_atributo == ';') {
+			token = proximo_token();
+			fim_do_codigo();
+
+			StmtList1();
+		} // else erro
 	} else {
 	   	return;
 	}
 }
 
 void StmtList() {
-	// StmtList -> Stmt ; StmtList1
+	// StmtList → Stmt ; StmtList1 
 	Stmt();
 	if (token.nome_atributo == ';'){ 
 		token = proximo_token();
@@ -663,7 +672,7 @@ void StmtList() {
 }
 
 void Block() {
-        // Block -> StmtList
+        // Block → StmtList 
 	StmtList();
 }
 
