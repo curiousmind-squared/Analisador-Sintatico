@@ -464,6 +464,9 @@ void NameList() {
 		fim_do_codigo();
 
 		if (token.nome_atributo == 260) {
+			token = proximo_token();
+			fim_do_codigo();
+
 			NameList();
 		} // else, erro
 
@@ -494,19 +497,25 @@ void ParamsList() {
 }
 
 void FunctionBody() {
-	// FunctionBody → name ParamsList block end
+	// FunctionBody → ( ParamsList ) block end 
 	
-	if (token.nome_atributo == 260) {
+	if (token.nome_atributo == '(') {
 		token = proximo_token();
 		fim_do_codigo();
 
 		ParamsList();
-		Block();
-		if (token.nome_atributo == 305) {
+		if (token.nome_atributo == ')') {
 			token = proximo_token();
 			fim_do_codigo();
-		} // else, msm história de smp
 
+			Block();
+			if (token.nome_atributo == 305) {
+				token = proximo_token();
+				fim_do_codigo();
+			} // else, msm história de smp
+
+		} // else, erro
+		
 	} // else, já sabe né
 
 
@@ -628,7 +637,13 @@ void Stmt() {
 		
 		token = proximo_token();
 		fim_do_codigo();
-		FunctionBody();
+
+		if (token.nome_atributo == 260) {
+			token = proximo_token();
+			fim_do_codigo();
+
+			FunctionBody();
+		}
 
 	} else if (token.nome_atributo == 311) { // Keyword para 'local' na tabela de simbolos 
 		// Stmt → local LocalBlock
