@@ -2,11 +2,16 @@
 #include <stdbool.h>
 #include "lexico.h"
 
+#define RESET   "\033[0m"
+#define RED     "\033[31m"      /* Red */
+#define GREEN   "\033[32m"      /* Green */
 
 #define STMT 3
+#define STMTLIST1 4
 
 Token token;
 char *code;
+bool erro=false;
 
 size_t firsts_size_STMT = 10;
 int firsts_STMT[] = {260, 
@@ -47,14 +52,14 @@ bool esta_no_conjunto(char function_type, unsigned int n_terminal) {
 	return false; // NOTE: Só coloquei para essa merda de editor parar de ficar enchendo o saco
 }
 
-/* // Isso aqui ainda não está pronto
+
 void Erro(char function_type, unsigned int n_terminal) {
 	if (function_type == 'p') { // 'p' para 'primeiro' == 'first'
 		switch (n_terminal) {
-			case STMT:
+			case STMTLIST1:
 				
 				 // Pseudo-codigo:
-				 // Comparamos token com os "Firsts" de STMS
+				 // Comparamos token com os "Firsts" de Stmtlist1
 				 // Se não bater com nenhum, chamamos token de novo
 				 // Se bater, caimos fora da função com o token na agulha
 				 
@@ -92,7 +97,7 @@ void Erro(char function_type, unsigned int n_terminal) {
 		exit(1);
 	}
 }
-*/
+
 void fim_do_codigo() {
 	if (token.nome_atributo == -1){ 
 		printf("End of File\n");
@@ -682,11 +687,12 @@ void StmtList() {
 		token = proximo_token();
 		if (token.nome_atributo == -1) return;
 		else StmtList1();
-	} /*else { // TODO: Se der erro, vamos procurar o first de 'StmtList1' 
-		printf("Erro, esperado ';'\n");
-		Erro('p', STMT);  
+	} else { // TODO: Se der erro, vamos procurar o first de 'StmtList1' 
+		erro = true;
+		printf( RED "Erro, esperado ';'\n" RESET);
+		Erro('p', STMTLIST1);  
 		Block();
-	}*/
+	}
 }
 
 void Block() {
@@ -711,7 +717,12 @@ int main(int argc, char *argv[]) {
 		fim_do_codigo();	
 		Block();
 	}
-	printf("Análise sintática realizada com sucesso\n");
+
+	if (erro) {
+		printf( RED "Análise sintática realizada com erros encontrados no código\n" RESET);
+	} else {
+		printf( GREEN "Análise sintática realizada com sucesso\n" RESET);
+	}
 			
 	free(code);
 	return 0;
