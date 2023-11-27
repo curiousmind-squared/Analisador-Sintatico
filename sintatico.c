@@ -9,6 +9,8 @@
 #define STMT 3
 #define STMTLIST1 4
 #define EXPS 5
+#define BLOCK 6
+#define FORBLOCK 7
 
 Token token;
 char *code;
@@ -113,7 +115,40 @@ void Erro(char function_type, unsigned int n_terminal) {
 				fim_do_codigo();
 				Erro('p', n_terminal);
 				break;
-					
+			case BLOCK:
+				size_t firsts_block_size = 10;
+				int firsts_block[] = {260, 
+						'(',
+						302,
+						320,
+						309,
+						316,
+						301,
+						307,
+						308,
+						311
+				};
+
+				for (size_t i=0;i<firsts_block_size;i++) {
+					if (token.nome_atributo == firsts_block[i]){
+						return;
+					}
+				}
+
+				token = proximo_token();
+				fim_do_codigo();
+				Erro('p', n_terminal);
+				break;
+
+			case FORBLOCK:
+				if (token.nome_atributo == '=' || token.nome_atributo == ',') {
+					return;
+				}
+
+				token = proximo_token();
+				fim_do_codigo();
+				Erro('p', n_terminal);
+				break;
 
 		}
 	} else if (function_type == 's'){ // 's' para 'sequencia' == 'follow'
@@ -637,27 +672,44 @@ void Stmt() {
 			token = proximo_token();
 			fim_do_codigo();
 
-			Block();
-			if (token.nome_atributo == 305){
-				token = proximo_token();
-				//fim_do_codigo();
-				return;
-			}
+	
+		} else {
+			erro=true;
+			printf( RED "Erro, esperado 'do'\n" RESET );
+			Erro('p', BLOCK);
+		}
+
+		Block();
+
+		if (token.nome_atributo == 305){
+			token = proximo_token();
+			//fim_do_codigo();
+			return;
+		} else {
+			erro=true;
+			printf( RED "Erro, esperado 'end'\n" RESET );
+			Erro('s', STMT);
+			return;
 		}
 	} else if (token.nome_atributo == 309) { // Keyword para 'if' na tabela de simbolos
 		// Stmt -> if Exp Then Block ElseBlock
 
 		token = proximo_token();
 		fim_do_codigo();
+		
 		Exp();
 
 		if (token.nome_atributo == 317) {
 			token = proximo_token();
 			fim_do_codigo();
 
-			Block();
-			ElseBlock(); 
+		} else {
+			erro=true;
+			printf( RED "Erro, esperado 'then'\n" RESET );
+			Erro('p', BLOCK);
 		}
+		Block();
+		ElseBlock(); 
 
 	} else if (token.nome_atributo == 316) { // Keyword para 'return' na tabela de simbolos
 		// Stmt -> return ExpsOpt
@@ -681,8 +733,13 @@ void Stmt() {
 			token = proximo_token();
 			fim_do_codigo();
 
-			ForBlock(); 
-		} // else temos um erro para tratar(mais um! ihuuul)
+		} else {
+			erro=true;
+			printf( RED "Erro, esperado identificador\n" RESET );
+			Erro('p', FORBLOCK);
+		} 
+		
+		ForBlock(); 
 
 	} else if (token.nome_atributo == 308) { // Keyword para 'function'  na tabela de simbolos
 		// Stmt → function name FunctionBody
@@ -767,6 +824,7 @@ int main(int argc, char *argv[]) {
 	
 	if (code == NULL) {
 		printf("Arquivo não encontrado\n");
+		exit(0);
 	} else {
 		token = proximo_token();
 		fim_do_codigo();	
