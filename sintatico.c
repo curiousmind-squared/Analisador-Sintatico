@@ -341,7 +341,7 @@ void ElseEndBlock() {
 
 		if (token.nome_atributo == 305) {
 			token = proximo_token();
-			fim_do_codigo();
+			//fim_do_codigo();
 			return;
 		}
 
@@ -573,10 +573,13 @@ void Stmt() {
 		Exp();
 
 		if (token.nome_atributo == 302) {
+			token = proximo_token();
+			fim_do_codigo();
+
 			Block();
 			if (token.nome_atributo == 305){
 				token = proximo_token();
-				fim_do_codigo();
+				//fim_do_codigo();
 				return;
 			}
 		}
@@ -588,6 +591,9 @@ void Stmt() {
 		Exp();
 
 		if (token.nome_atributo == 317) {
+			token = proximo_token();
+			fim_do_codigo();
+
 			Block();
 			ElseBlock(); 
 		}
