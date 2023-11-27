@@ -258,18 +258,17 @@ void Exp() {
 	Exp → string ExpBlock  
 	 */
 	
-	bool gate = false;
 
 	if (token.nome_atributo == 260 || token.nome_atributo == '(') {
 		// Não consumimos o token da agulha pois estamos analisando o first
 		PrefixExp();
-		gate = true;
+		ExpBlock();
+
 	} else if (token.nome_atributo == '{') {
 		token = proximo_token();
 		fim_do_codigo();
 
 		FieldList();
-		gate = true;
 	} else {
 		size_t exps_possibilities_size = 8;
 		int exps_possibilities[] = {313,
@@ -283,16 +282,14 @@ void Exp() {
 				};	
 		for (size_t i=0; i<exps_possibilities_size; i++) {
 			if (exps_possibilities[i] == token.nome_atributo){
-				gate = true;
+				token = proximo_token();
+				fim_do_codigo();
+				ExpBlock();
+				break;
 			}
 		}
 	}
-	if (gate) {
-		token = proximo_token();
-		fim_do_codigo();
 
-		ExpBlock();	
-	} // else é por que deu algum erro e teremos que recuperar
 
 }
 
@@ -648,7 +645,7 @@ void StmtList1() {
 		Stmt();
 		if (token.nome_atributo == ';') {
 			token = proximo_token();
-			fim_do_codigo();
+			//fim_do_codigo();
 
 			StmtList1();
 		} // else erro
